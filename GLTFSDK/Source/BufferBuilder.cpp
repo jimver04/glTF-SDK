@@ -30,6 +30,7 @@ namespace
 
 BufferBuilder::BufferBuilder(std::unique_ptr<ResourceWriter>&& resourceWriter) : BufferBuilder(std::move(resourceWriter), {}, {}, {})
 {
+    std::cout << "\n" << "3.2 BufferBuilder Constructor 2" << "\n";
 }
 
 BufferBuilder::BufferBuilder(std::unique_ptr<ResourceWriter>&& resourceWriter,
@@ -40,6 +41,7 @@ BufferBuilder::BufferBuilder(std::unique_ptr<ResourceWriter>&& resourceWriter,
     m_fnGenBufferViewId(std::move(fnGenBufferViewId)),
     m_fnGenAccessorId(std::move(fnGenAccessorId))
 {
+    std::cout << "\n" << "3.1 BufferBuilder Constructor 1" << "\n";
 }
 
 const Buffer& BufferBuilder::AddBuffer(const char* bufferId)

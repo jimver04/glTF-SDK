@@ -33,17 +33,33 @@ namespace Microsoft
             template<typename T>
             static size_t WriteBinary(std::ostream& stream, const T* data, size_t size)
             {
-                if (!stream.good())
+                // if (!stream.good())
+                // {
+                //     throw std::runtime_error("The output stream is not in a good state.");
+                // }
+
+                try
                 {
-                    throw std::runtime_error("The output stream is not in a good state.");
+                    stream.write(reinterpret_cast<const char*>(data), size);
+                }
+                catch (std::runtime_error& e)
+                {   
+                    stream.setstate(stream.good());
+
+                    std::cout << e.what();
                 }
 
-                stream.write(reinterpret_cast<const char *>(data), size);
+                std::cout << "\nStream sz: "<< stream.tellp()
+                          << "| Good:" << stream.good()
+                          << "| Eof: " << stream.opfx()
+                          << "| Fail:" << stream.fail()
+                          << "| Bad: " << stream.bad()
+                          << "| Sz: "  << size;
 
-                if (stream.fail())
-                {
-                    throw std::runtime_error("Unable to write to buffer.");
-                }
+                // if (stream.fail())
+                // {
+                //     throw std::runtime_error("Unable to write to buffer.");
+                // }
 
                 return size;
             }

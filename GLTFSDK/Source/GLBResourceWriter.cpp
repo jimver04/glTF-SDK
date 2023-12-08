@@ -21,25 +21,47 @@ namespace
 }
 
 GLBResourceWriter::GLBResourceWriter(std::shared_ptr<const IStreamWriter> streamWriter)
-    : GLBResourceWriter(std::move(streamWriter), std::make_unique<std::stringstream>())
+
+           : GLBResourceWriter(std::move(streamWriter), std::make_unique<std::stringstream>())
 {
+
+                     std::cout << "\n" << "2.2 GLBResourceWriter" << "\n";
+
+                     std::cout << "2.2.1: m_stream: " << m_stream->tellp() << "\n";
+
 }
 
-GLBResourceWriter::GLBResourceWriter(std::shared_ptr<const IStreamWriter> streamWriter, std::unique_ptr<std::iostream> tempBufferStream)
-    : GLTFResourceWriter(std::move(streamWriter)),
-    m_stream(std::move(tempBufferStream))
+GLBResourceWriter::GLBResourceWriter(std::shared_ptr<const IStreamWriter> streamWriter, std::unique_ptr<std::iostream> tempBufferStream) :
+
+            GLTFResourceWriter(std::move(streamWriter)),
+
+            m_stream(std::move(tempBufferStream))
+
+            
 {
+                    std::cout << "\n" << "2.1. GLBResourceWriter Temp" << "\n";
+
+                    std::cout << "2.1.1. m_stream: " << m_stream->tellp() << "\n";
+                     
+
 }
 
 GLBResourceWriter::GLBResourceWriter(std::unique_ptr<IStreamWriterCache> streamCache)
-    : GLBResourceWriter(std::move(streamCache), std::make_unique<std::stringstream>())
+
+             : GLBResourceWriter(std::move(streamCache), std::make_unique<std::stringstream>())
 {
+
+                     std::cout << "\n" << "III. GLBResourceWriter Cache" << "\n";
+
 }
 
 GLBResourceWriter::GLBResourceWriter(std::unique_ptr<IStreamWriterCache> streamCache, std::unique_ptr<std::iostream> tempBufferStream)
-    : GLTFResourceWriter(std::move(streamCache)),
-    m_stream(std::move(tempBufferStream))
+
+            : GLTFResourceWriter(std::move(streamCache)), m_stream(std::move(tempBufferStream))
 {
+
+                     std::cout << "\n" << "IV. GLBResourceWriter Cache Temp" << "\n";
+
 }
 
 void GLBResourceWriter::Flush(const std::string& manifest, const std::string& uri)
@@ -59,45 +81,54 @@ void GLBResourceWriter::Flush(const std::string& manifest, const std::string& ur
         + sizeof(binaryChunkLength) + GLB_CHUNK_TYPE_SIZE // 8 bytes (BIN header)
         + binaryChunkLength;
 
-    auto stream = m_streamWriterCache->Get(uri);
+    // The file stream
+    std::cout << "\nURI : " << uri << "\n";
+    std::shared_ptr<std::ostream> filestream = m_streamWriterCache->Get(uri);
 
     // Write GLB header (12 bytes)
-    StreamUtils::WriteBinary(*stream, GLB_HEADER_MAGIC_STRING, GLB_HEADER_MAGIC_STRING_SIZE);
-    StreamUtils::WriteBinary(*stream, GLB_HEADER_VERSION_2);
-    StreamUtils::WriteBinary(*stream, length);
+    std::cout << "\nWrite GLB header (12 bytes) to File" << "\n";
+    StreamUtils::WriteBinary(*filestream, GLB_HEADER_MAGIC_STRING, GLB_HEADER_MAGIC_STRING_SIZE);
+    StreamUtils::WriteBinary(*filestream, GLB_HEADER_VERSION_2);
+    StreamUtils::WriteBinary(*filestream, length);
 
     // Write JSON header (8 bytes)
-    StreamUtils::WriteBinary(*stream, jsonChunkLength);
-    StreamUtils::WriteBinary(*stream, GLB_CHUNK_TYPE_JSON, GLB_CHUNK_TYPE_SIZE);
+    std::cout << "\nWrite JSON header (8 bytes) to File" << "\n";
+    StreamUtils::WriteBinary(*filestream, jsonChunkLength);
+    StreamUtils::WriteBinary(*filestream, GLB_CHUNK_TYPE_JSON, GLB_CHUNK_TYPE_SIZE);
 
     // Write JSON (indeterminate length)
-    StreamUtils::WriteBinary(*stream, manifest);
+    std::cout << "\nWrite JSON (indeterminate length) to File" << "\n";
+    StreamUtils::WriteBinary(*filestream, manifest);
+
 
     if (jsonPaddingLength > 0)
     {
+        std::cout << "\nWrite Padding to File" << "\n";
         // GLB spec requires the JSON chunk to be padded with trailing space characters (0x20) to satisfy alignment requirements
-        StreamUtils::WriteBinary(*stream, std::string(jsonPaddingLength, ' '));
+        StreamUtils::WriteBinary(*filestream, std::string(jsonPaddingLength, ' '));
     }
 
     // Write BIN header (8 bytes)
-    StreamUtils::WriteBinary(*stream, binaryChunkLength);
-    StreamUtils::WriteBinary(*stream, GLB_CHUNK_TYPE_BIN, GLB_CHUNK_TYPE_SIZE);
+    std::cout << "\nWrite BIN header (8 bytes) to File" << "\n";
+    StreamUtils::WriteBinary(*filestream, binaryChunkLength);
+    StreamUtils::WriteBinary(*filestream, GLB_CHUNK_TYPE_BIN, GLB_CHUNK_TYPE_SIZE);
 
     // Write BIN contents (indeterminate length) - copy the temporary buffer's contents to the output stream
-    if (binaryChunkLength > 0)
-    {
-        *stream << m_stream->rdbuf();
-    }
+    std::cout << "\nWrite BIN contents to File";
+    *filestream << m_stream->rdbuf();
 
     if (binaryPaddingLength > 0)
     {
+        std::cout << "\nWrite BIN padding to File";
         // GLB spec requires the BIN chunk to be padded with trailing zeros (0x00) to satisfy alignment requirements
-        StreamUtils::WriteBinary(*stream, std::vector<uint8_t>(binaryPaddingLength, 0));
+        StreamUtils::WriteBinary(*filestream, std::vector<uint8_t>(binaryPaddingLength, 0));
     }
 }
 
 std::string GLBResourceWriter::GenerateBufferUri(const std::string& bufferId) const
 {
+    std::cout << "\n" << "5. GenerateBufferUri" << "\n";
+
     std::string bufferUri;
 
     // Return an empty uri string when passed the GLB buffer id
@@ -111,8 +142,10 @@ std::string GLBResourceWriter::GenerateBufferUri(const std::string& bufferId) co
 
 std::ostream* GLBResourceWriter::GetBufferStream(const std::string& bufferId)
 {
-    std::ostream* stream = m_stream.get();
+    std::cout << "\n" << "8. Get Stream" << "\n";
 
+    std::ostream* stream = m_stream.get();
+    
     if (bufferId != GLB_BUFFER_ID)
     {
         stream = GLTFResourceWriter::GetBufferStream(bufferId);

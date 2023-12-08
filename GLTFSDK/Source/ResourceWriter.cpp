@@ -7,6 +7,7 @@ using namespace Microsoft::glTF;
 
 ResourceWriter::ResourceWriter(std::unique_ptr<IStreamWriterCache> streamWriterCache) : m_streamWriterCache(std::move(streamWriterCache))
 {
+    std::cout << "2. Initialize Resource Writer." << "\n";
 }
 
 ResourceWriter::~ResourceWriter() = default;
@@ -18,24 +19,26 @@ void ResourceWriter::Write(const BufferView& bufferView, const void* data)
 
 void ResourceWriter::Write(const BufferView& bufferView, const void* data, const Accessor& accessor)
 {
+    std::cout << "\n6. Write." << "\n";
+
     if (accessor.bufferViewId != bufferView.id)
     {
         throw InvalidGLTFException("accessor.bufferViewId does not match bufferView.id");
     }
 
-    const auto componentTypeSize = Accessor::GetComponentTypeSize(accessor.componentType);
+    //const auto componentTypeSize = Accessor::GetComponentTypeSize(accessor.componentType);
 
-    // From the glTF 2.0 spec: the offset of an accessor into a bufferView (accessor.byteOffset) must be a multiple of the size of the accessor's component type
-    if (accessor.byteOffset % componentTypeSize)
-    {
-        throw InvalidGLTFException("accessor.byteOffset must be a multiple of the accessor's component type size");
-    }
-
-    // From the glTF 2.0 spec: the offset of an accessor into a buffer (accessor.byteOffset + bufferView.byteOffset) must be a multiple of the size of the accessor's component type
-    if ((accessor.byteOffset + bufferView.byteOffset) % componentTypeSize)
-    {
-        throw InvalidGLTFException("accessor.byteOffset + bufferView.byteOffset must be a multiple of the accessor's component type size");
-    }
+    // // From the glTF 2.0 spec: the offset of an accessor into a bufferView (accessor.byteOffset) must be a multiple of the size of the accessor's component type
+    // if (accessor.byteOffset % componentTypeSize)
+    // {
+    //     throw InvalidGLTFException("accessor.byteOffset must be a multiple of the accessor's component type size");
+    // }
+    //
+    // // From the glTF 2.0 spec: the offset of an accessor into a buffer (accessor.byteOffset + bufferView.byteOffset) must be a multiple of the size of the accessor's component type
+    // if ((accessor.byteOffset + bufferView.byteOffset) % componentTypeSize)
+    // {
+    //     throw InvalidGLTFException("accessor.byteOffset + bufferView.byteOffset must be a multiple of the accessor's component type size");
+    // }
 
     const auto accessorByteLength = accessor.GetByteLength();
 
@@ -63,6 +66,8 @@ void ResourceWriter::WriteExternal(const std::string& uri, const std::string& da
 
 void ResourceWriter::WriteImpl(const BufferView& bufferView, const void* data, std::streamoff totalOffset, size_t totalByteLength)
 {
+    std::cout << "7. WriteImpl." << "\n";
+
     // TODO: vertex attributes must be aligned to 4-byte boundaries inside a bufferView (accessor.byteOffset and bufferView.byteStride must be multiples of 4)
 
     if (auto bufferStream = GetBufferStream(bufferView.bufferId))
