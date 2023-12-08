@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <istream>
+#include <iostream>
 #include <ostream>
 
 namespace Microsoft
